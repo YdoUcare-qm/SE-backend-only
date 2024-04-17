@@ -15,8 +15,8 @@ from .config import Config
 from werkzeug.exceptions import HTTPException 
 from application import index
 
-API_TOKEN="805203cb88be4b6020394bb489667f1052bc2fb93ad1d66cc836f2dbfd0c69af"
-USER="21f1000907"               ##Just configured only for Unit Testing
+API_TOKEN="77a052969dae8a3d77c97021a8b53ef18d191761a4079c0487f255eadfcfcaff"
+USER="21f1007034"              ##Just configured only for Unit Testing
 
 headers = {
             "Api-key": API_TOKEN,

@@ -28,12 +28,13 @@ headers = {
   
 class UserProfile(Resource):
     # @token_required
-    def get(self):
+    def post(self):
         try:
             r=request.json
             id=r.get('user_id')
             user=User.query.filter_by(id=id).first()
             d = {
+                'name': user.name,
                 'username': user.username,
                 'email': user.email,
                 'role': user.role,
@@ -50,7 +51,7 @@ class UserProfile(Resource):
 
 class YourTickets(Resource):
     # @token_required
-    def get(self):
+    def post(self):
         r=request.json
         creator=r.get('user_id')
         ticket=Ticket.query.filter_by(creator=creator).all()
@@ -92,15 +93,20 @@ class Recommendations(Resource):
     #GET RECOMMENDATIONS BEFORE CREATING TICKETS 
     #SO THAT USERS CAN VIEW/MATCH THEIR ISSUES
 
-    def get(self):
+    def post(self):
         try:
             r=request.json
-            category=r.get('category')  #cat id
-            tags=r.get('tags') 
-            response=requests.post()
+            catslug=r.get('cat-slug')  #cat slug
+            params = {
+                "q": '#'+catslug,
+                "order":"latest"
+            }
+            response=requests.get(f'http://localhost:4200/search.json',params=params)
+            response.raise_for_status()
             return response.json()
-        except:
-            abort(401,message="Failed to create ticket")
+        except Exception as e:
+            print(e)
+            abort(401,message="Failed to get recommendations")
         
 
 class MatchTopic(Resource):
@@ -139,3 +145,85 @@ class FAQs(Resource):
             return jsonify({"FAQS":data})
         except:
             abort(401,message="Error in fetching FAQ")
+
+class Subscriptions(Resource):
+    # @token_required
+    def post(self):
+        try:
+            r=request.json
+            subscriber=r.get('user_id')
+            categories=Subscription.query.filter_by(user_id=subscriber).all()
+            result=[]
+            for c in categories:
+                d={}
+                d['cid']=c.category
+                result.append(d)
+            return jsonify({"categories": result})
+        except:
+            abort(401,message="Couldn't fetch User Subscriptions")
+
+class ToggleSubscription(Resource):
+    # @token_required
+    def post(self):
+        try:
+            r=request.json
+            user_id=r.get('user_id')
+            print(user_id)
+            category=r.get('category')
+            sub=Subscription.query.filter_by(user_id=user_id,category=category).first()
+            if not sub:
+                print("no subscription present")
+                sub=Subscription(
+                    user_id=user_id,
+                    category=category
+                )
+                db.session.add(sub)
+                db.session.commit()
+                print("subbed")
+                return jsonify({"message": "Subscribed"})
+            else:
+                print("subscription present")
+                db.session.delete(sub)
+                db.session.commit()
+                print("unsubbed")
+                return jsonify({"message": "Unsubscribed"})
+        except:
+            print("error in toggling")
+            abort(401,message="Error in Toggling")
+
+class FullTicket(Resource):
+    # @token_required
+    def post(self):
+        
+        r=request.json
+        ticket_id=r.get('ticket_id')
+        user_id=r.get('user_id')
+        print(ticket_id,user_id)
+        t=Ticket.query.filter_by(id=ticket_id).first()
+        print("t",t)
+        if not t:
+            abort(401,message="No such ticket")
+        if int(t.creator) != int(user_id):
+            print(user_id,t.creator)
+            abort(401,message="This ticket is private to its author")
+        d={}
+        d['id']=t.id
+        d['title']=t.title
+        d['description']=t.description
+        d['date']=str(t.date)
+        d['category']=t.category
+        d['tags']=t.tags
+        d['offensive']=t.offensive
+        d['escalated']=t.escalated
+        d['resolved']=t.resolved
+        d['merged']=t.merged
+        print("ticket fetch done",d)
+        r=Response.query.filter_by(ticket_id=ticket_id).first()
+        e={}
+        if r:
+            e['responder']=r.responder
+            e['response']=r.response
+            e['date']=r.date 
+        return jsonify({"ticket": d,
+                        "response":e})
+        

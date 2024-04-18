@@ -29,18 +29,31 @@ class Categories(Resource):
        x=requests.get("http://localhost:4200/categories.json")
        return x.json()
     
-class Topics(Resource):
+class CategoryTopics(Resource):
 
     #GET ALL TOPICS BY EITHER CATEGORY ID OR CATEGORY SLUG
-    def get(self):
-        r=request.json
-        slug=r.get('slug')
-        id=r.get('id')
-        
-        response = requests.get(f'http://localhost:4200/c/{slug}/{id}.json', headers=headers)
-        return response.json()
+    def post(self):
+        try:
+            r=request.json
+            slug='j'
+            id=r.get('id')
+            
+            response = requests.get(f'http://localhost:4200/c/{slug}/{id}.json', headers=headers)
+            return response.json()
+        except:
+            abort(401,message="error getting topics")
 
-
+class TopicPosts(Resource):
+    #POSTS UNDER A TOPIC
+    def post(self):
+        try:
+            r=request.json
+            id=r.get('id')
+            
+            response = requests.get(f'http://localhost:4200/t/{id}.json', headers=headers)
+            return response.json()
+        except:
+            abort(401,message="error getting posts")
 
 class Notifications(Resource):
     #GET ALL NOTIFICATIONS BY USER ID
@@ -103,7 +116,7 @@ class Registration(Resource):
 #ajeet      
 class Verification(Resource):
     def get(self):
-        email="21f1000907@ds.study.iitm.ac.in"
+        email="21f1007034@ds.study.iitm.ac.in"
         user1=User.query.filter_by(email=email).first()
         print(user1)
         if(user1.status==0):
@@ -165,14 +178,14 @@ class Login(Resource):
 
                 token = jwt.encode({
                     'id': test.id,
-                    'exp': datetime.utcnow() + timedelta(minutes=80)
+                    'exp': datetime.now() + timedelta(minutes=80)
                 }, Config.SECRET_KEY, algorithm="HS256")
                 # access_token = create_access_token(identity=email)
                 print(token)
             else:
-                abort(401, message="Account is not activte, verify email")
+                abort(403, message="Account is not activated, verify email")
             if(flag):
-                return jsonify({"message":"User email and user_id has been updated, kindly use new discorse email or user_id from next time", "token":token,"user_id":test.user_id,"role":test.role_id})
+                return jsonify({"message":"User email and user_id has been updated, kindly use new discorse email or user_id from next time", "token":token,"user_id":test.id,"role":test.role})
             else:
                 return jsonify({"message":"Loggedin successfully !", "token":token,"id":test.id,"role":test.role})
         else:

@@ -25,7 +25,8 @@ from application.ticketapi import *
 ########################GENERAL APIS###################################
 
 api.add_resource(Notifications, '/api/notifications')
-api.add_resource(Topics, '/api/topics')
+api.add_resource(CategoryTopics, '/api/topics')
+api.add_resource(TopicPosts, '/api/posts')
 api.add_resource(Categories, '/api/categories')
 #discourse apis from ajeet
 api.add_resource(Verification, '/api/discourse/self_account/activate')
@@ -42,6 +43,9 @@ api.add_resource(NewTicket, '/api/user/newticket')
 api.add_resource(Recommendations, '/api/user/recommendations')
 api.add_resource(MatchTopic, '/api/user/match')
 api.add_resource(FAQs, '/api/user/faqs')
+api.add_resource(Subscriptions, '/api/user/subscriptions')
+api.add_resource(ToggleSubscription, '/api/user/togglesub')
+api.add_resource(FullTicket, '/api/user/fullticket')
 ########################STAFF APIS#####################################
 api.add_resource(CreateTopic, '/api/staff/createtopic')
 api.add_resource(EditTopic, '/api/staff/edittopic')

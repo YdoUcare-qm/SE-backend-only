@@ -15,6 +15,7 @@ class User(db.Model):
     __tablename__='user'
     id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     username=db.Column(db.String(100),unique=True,nullable=False)
+    name=db.Column(db.String(100),unique=True,nullable=False)
     password=db.Column(db.String(100),nullable=False)
     email=db.Column(db.String(100),unique=True,nullable=False)
     role=db.Column(db.Integer,nullable=False) #Role ID for students is 1, for Support Agents is 2, Admins is 3, Manager is 4.
@@ -65,8 +66,8 @@ class FAQ(db.Model):
     is_approved = db.Column(db.Boolean,default=False) #requested by staff,approved by admin
 
 class Subscription(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    category = db.Column(db.Integer, primary_key=True) #category id
+    user_id = db.Column(db.Integer, primary_key=True,default=0)
+    category = db.Column(db.Integer, primary_key=True,default=0) #category id
 
 #Function to create default admin user
 from sqlalchemy import func

@@ -15,7 +15,7 @@ class User(db.Model):
     __tablename__='user'
     id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     username=db.Column(db.String(100),unique=True,nullable=False)
-    name=db.Column(db.String(100),unique=True,nullable=False)
+    name=db.Column(db.String(100))
     password=db.Column(db.String(100),nullable=False)
     email=db.Column(db.String(100),unique=True,nullable=False)
     role=db.Column(db.Integer,nullable=False) #Role ID for students is 1, for Support Agents is 2, Admins is 3, Manager is 4.
@@ -69,24 +69,3 @@ class Subscription(db.Model):
     user_id = db.Column(db.Integer, primary_key=True,default=0)
     category = db.Column(db.Integer, primary_key=True,default=0) #category id
 
-#Function to create default admin user
-from sqlalchemy import func
-def create_default_admin():
-    row_count = db.session.query(func.count()).select_from(User).scalar()
-    if row_count<=0:
-        # Create admin user if it doesn't exist
-        admin = User(
-            username='admin1',
-            password='admin',
-            email='admin@iitm.ac.in',
-            role=3,  # Role ID for admins
-            name='admin',
-            discourse_id=3,  # Set discourse ID as needed
-            status=True  # Set status as needed
-        )
-        db.session.add(admin)
-        db.session.commit()
-
-# # Attach event listener to create default admin user after database creation
-# event.listen(db.metadata, 'after_create', create_default_admin)
-    

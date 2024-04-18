@@ -107,38 +107,34 @@ class AdminGetRequest(Resource):
     
 class AdminPostRequest(Resource):
     #@token_required
-    def patch(self):
+    def patch(self): 
         try:
             '''
             input
             {
             "section":"",       //category OR faq
-            "staff_id": ,
-            "category":"" ,
-            "cat_response":  ,       //1 for accepted -1 for rejected
-            "topic_id": ,
-            "solution_post_id": ,
-            "faq_response":     //1 for accepted -1 for rejected
-
+            "sid": ,
+            "ctid":"" ,
+            "response":  ,       //1 for accepted -1 for rejected
             }
             '''
             r=request.json
             if(r['section'] == 'category'):
-                cat=CategoryAllotted.query.filter_by(staff_id=r['staff_id'], category=r['category']).first()  
-                if(r['cat_response']==-1):
+                cat=CategoryAllotted.query.filter_by(staff_id=r['sid'], category=r['ctid']).first()  
+                if(r['response']==-1):
                     db.session.delete(cat)
                     db.session.commit()
-                elif(r['cat_response']==1):
+                elif(r['response']==1):
                     cat.is_approved=1
                     db.session.add(cat)
                     db.session.commit()
             elif(r['section'] =='faq' ):
-                faq=FAQ.query.filter_by(topic_id=r['topic_id'], solution_post_id=r['solution_post_id']).first()
-                if(r['faq_response']==-1):
+                faq=FAQ.query.filter_by(topic_id=r['ctid'], solution_post_id=r['sid']).first()
+                if(r['response']==-1):
                     db.session.delete(faq)
                     db.session.commit()
                     
-                elif(r['faq_response']==1):
+                elif(r['response']==1):
                     faq.is_approved=1
                     db.session.add(faq)
                     db.session.commit()
@@ -167,7 +163,7 @@ class RevokeStaff(Resource):
                     db.session.commit()
                 receiver = "21f1000907@ds.study.iitm.ac.in"
                 sub="{} is simple user".format(user.username)
-                msg="Dear {},".format(user.email)+ "\n\nYour support staff mimbership has been revoked."+"\n\nRegards"
+                msg="Dear {},".format(user.email)+ "\n\nYour support staff membership has been revoked."+"\n\nRegards"
                 send_email_ER.delay(receiver,sub,msg) if user.email_notif==1 else None
                 webhook_task.delay(msg)  if user.webhook_notif==1 else None
             return jsonify({'message':'staff status revoked'})

@@ -82,16 +82,53 @@ def get_users():
 #def get_users(current_user):
     #print(current_user,current_user.id,current_user.email)
 	
-    users = User.query.all()
+    users = User.query.filter_by(status=1).all()
     results = [
         {
-            "user_id": user.id,
-            "user_name": user.username,
-            "email_id": user.email,
-            "role_id": user.role
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+			
         } for user in users]
 
     return jsonify(results)
+
+@app.route("/user/<id>", methods=["GET"])
+#@token_required
+def get_user1(id):
+	
+#def get_users(current_user):
+    #print(current_user,current_user.id,current_user.email)
+	
+    user = User.query.filter_by(id=id).first()
+    result =[
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+			
+        }]
+
+    return jsonify(result)
+
+@app.route("/cat/<id>", methods=["GET"])
+def getcat(id):
+    try:
+        
+        #id=user.id
+        cat=CategoryAllotted.query.filter_by(staff_id=id , is_approved=1).all()
+        cat_list=[]
+        for c in cat:
+            d = {
+                'staff_id':c.staff_id,
+                'category':c.category
+                }   
+            cat_list.append(d)
+        return jsonify(cat_list)
+    except:
+        abort(401,message="Failed to fetch alloted category")
 
 #send eamail
 from mail import send_email

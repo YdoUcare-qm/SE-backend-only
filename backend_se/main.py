@@ -31,12 +31,15 @@ api.add_resource(FullTicket, '/api/user/fullticket')
 
 api.add_resource(CreateTopic, '/api/staff/createtopic')
 api.add_resource(EditTopic, '/api/staff/edittopic')
+
+api.add_resource(TopicResolution, '/api/staff/topicresolution')
+
 api.add_resource(Merge, '/api/staff/merge')
 api.add_resource(ResolveTopic, '/api/staff/resolvetopic')
 api.add_resource(ResolveTicket, '/api/staff/resolveticket')
 
 api.add_resource(StaffProfile, '/api/staff/profile')
-api.add_resource(AllottedCategory, '/api/staff/category')
+api.add_resource(AllottedCategory, '/api/staff/categories')
 api.add_resource(Respond, '/api/staff/respond')
 api.add_resource(RequestFAQ, '/api/staff/requestfaq')
 api.add_resource(RequestCategory, '/api/staff/requestcategory')

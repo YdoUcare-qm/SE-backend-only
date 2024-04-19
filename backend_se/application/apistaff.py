@@ -43,7 +43,7 @@ class CreateTopic(Resource):
     
 class EditTopic(Resource):
     #EDIT AN EXISTING TOPIC
-    def patch(self):
+    def post(self):
         r=request.json
         id=r.get('topic_id')
         title=r.get('title')
@@ -57,9 +57,24 @@ class EditTopic(Resource):
         }
         response = requests.put(f'http://localhost:4200/t/-/{id}.json',json=data, headers=headers)
         return response.json()
-    
+
+class TopicResolution(Resource):
+    #@token_required
+    def post(self):
+        try:
+            r=request.json
+            topic_id=r.get('topic_id')
+            
+            t=Topic.query.filter_by(topic_id=topic_id).first()
+            if t:
+                return jsonify({"post_id":t.solution_post_id })
+            else:
+                return jsonify({"post_id":0 })
+        except:
+            abort(401,message="Failed to fetch alloted category")
+
 class Merge(Resource):
-    def put(self):
+    def post(self):
         try:
             r=request.json
             ticket_id=r.get('ticket_id')
@@ -71,8 +86,12 @@ class Merge(Resource):
         except:
             abort(404,message="Failed to Merge the Ticket")
 
+# class GetTicketsbyStaff(Resource):
+#     def post
+# will update soon
+
 class ResolveTicket(Resource):
-    def put(self):
+    def post(self):
         try:
             r=request.json
             id=r.get('ticket_id')
@@ -84,7 +103,7 @@ class ResolveTicket(Resource):
             abort(404,message="Failed to Resolve Ticket")
 
 class ResolveTopic(Resource):
-    def put(self):
+    def post(self):
         try:
             r=request.json
             resolution=r.get('resolution')
@@ -94,14 +113,25 @@ class ResolveTopic(Resource):
                 "topic_id":topic_id
             }
             response = requests.post(f'http://localhost:4200/posts.json',json=data, headers=headers)
-            if response.status_code==200:
-                r=response.json
+            try:
+                print(response)
+                r=response.json()
                 id=r.get('id')
+                print("post-id",id)
                 t=Topic.query.filter_by(topic_id=topic_id).first()
-                t.solution_post_id=id
-                db.session.commit()
-                return jsonify({"message":"Resolved Topic"})
-            else:
+                if t:
+                    t.solution_post_id=id
+                    db.session.commit()
+                else:
+                    tn=Topic(
+                        topic_id=topic_id,
+                        solution_post_id=id
+                    )
+                    db.session.add(tn)
+                    db.session.commit()
+                return jsonify({"post_id":id})
+            except Exception as e:
+                print(e)
                 abort(404,message="Failed to post the resolution")
             
         except:
@@ -110,12 +140,13 @@ class ResolveTopic(Resource):
 
 class StaffProfile(Resource):
     #@token_required
-    def get(self):
+    def post(self):
         try:
-            id=2
-            #id=user.id
+            r=request.json
+            id=r.get('user_id')
             user=User.query.filter_by(id=id).first()
             d = {
+                'name': user.name,
                 'username': user.username,
                 'email': user.email,
                 'role': user.role,
@@ -131,19 +162,19 @@ class StaffProfile(Resource):
 
 class AllottedCategory(Resource):
     #@token_required
-    def get(self):
+    def post(self):
         try:
-            id=2
+            r=request.json
+            id=r.get('user_id')
             #id=user.id
             cat=CategoryAllotted.query.filter_by(staff_id=id , is_approved=1).all()
             cat_list=[]
             for c in cat:
                 d = {
-                    'staff_id':c.staff_id,
-                    'category':c.category
+                    'cid':c.category
                     }   
                 cat_list.append(d)
-            return jsonify({"data": cat_list})
+            return jsonify({"categories": cat_list})
         except:
             abort(401,message="Failed to fetch alloted category")
 
@@ -174,20 +205,21 @@ class RequestFAQ(Resource):
     #@token_required
     def post(self):
         try:
-            '''
-            {
-            "topic_id":"",
-            "solution_post_id":""
-            }
-            '''
+            
             r=request.json
-            d = FAQ(
-                topic_id= r['topic_id'],
-                solution_post_id= r['solution_post_id']
-            ) 
-            db.session.add(d)
-            db.session.commit()
-            return jsonify({"message": "faq request is added successfully"})
+            topic_id=r.get('topic_id')
+            post_id=r.get('solution_post_id')
+            f=FAQ.query.filter_by(topic_id=topic_id).first()
+            if f:
+                return jsonify({"message": "Already placed"})
+            else:
+                d = FAQ(
+                    topic_id= topic_id,
+                    solution_post_id= post_id
+                ) 
+                db.session.add(d)
+                db.session.commit()
+                return jsonify({"message": "faq request is added successfully"})
         except:
             abort(401,message="Failed to add faq request")
 
@@ -214,7 +246,7 @@ class RequestCategory(Resource):
 
 class UpdateSetting(Resource):
     #@token_required
-    def patch(self):
+    def post(self):
         try: 
             '''
             {
@@ -239,18 +271,4 @@ class UpdateSetting(Resource):
             return jsonify({"message": "settings updates successfully"})
         except:
             abort(401,message="Failed to update settings")
-# @app.route("/users", methods=["GET"])
-# @token_required
-# def get_users(current_user):
-#     print(current_user,current_user.id,current_user.email)
-#     users = User.query.all()
-#     results = [
-#         {
-#             "user_id": user.id,
-#             "user_name": user.username,
-#             "name": user.name,
-#             "email_id": user.email,
-#             "role_id": user.id
-#         } for user in users]
 
-#     return jsonify(results)
